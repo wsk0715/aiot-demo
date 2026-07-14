@@ -4,6 +4,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,12 @@ public class MqttSubscriber {
     @Value("${mqtt.topic}")
     private String topic;
 
+    private final SseService sseService;
+
+    public MqttSubscriber(SseService sseService) {
+        this.sseService = sseService;
+    }
+
     @PostConstruct
     public void subscribe() {
         try {
@@ -31,9 +38,11 @@ public class MqttSubscriber {
             options.setAutomaticReconnect(true);
             client.connect(options);
 
-            client.subscribe(topic, (t, message) ->
-                log.info("MQTT 수신 >> {}", new String(message.getPayload()))
-            );
+            client.subscribe(topic, (t, message) -> {
+                String payload = new String(message.getPayload());
+                log.info("MQTT 수신 >> {}", payload);
+                sseService.broadcast(payload);
+            });
 
             log.info("MQTT 구독 시작: {} -> {}", broker, topic);
         } catch (Exception e) {
