@@ -1,4 +1,12 @@
 services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    restart: always
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+
   mysql:
     image: mysql:8.0
     container_name: mysql

@@ -7,7 +7,12 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    
+
   output:
     ansi:
       enabled: always
+
+mqtt:
+  broker: tcp://mosquitto:1883
+  client-id: demo-subscriber
+  topic: drone/telemetry
