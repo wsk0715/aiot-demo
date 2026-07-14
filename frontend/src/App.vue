@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import DroneDashboard from './components/DroneDashboard.vue'
 </script>
 
 <template>
-  <HelloWorld />
+  <DroneDashboard />
 </template>
