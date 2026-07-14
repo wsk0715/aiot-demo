@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: demo-app
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+  output:
+    ansi:
+      enabled: always
