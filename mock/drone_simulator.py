@@ -1,21 +1,25 @@
 import json
+import math
 import random
 import time
 from datetime import datetime, timezone
 
-import math
+from paho.mqtt import client as mqtt
 
 BASE_LAT, BASE_LNG = 37.5665, 126.9780
 battery = 100.0
 lat, lng = BASE_LAT, BASE_LNG
-heading = random.randint(0, 359)  # 초기 방향
-STEP = 0.002  # 1초 이동 거리 (약 200m)
+heading = random.randint(0, 359)
+STEP = 0.002
+
+MQTT_BROKER = "localhost"
+MQTT_PORT = 1883
+MQTT_TOPIC = "drone/telemetry"
 
 
 def generate_telemetry():
     global battery, lat, lng, heading
     battery = max(0, battery - 1)
-    # 방향을 기준으로 이동 (약간의 흔들림 추가)
     heading += random.uniform(-2, 2)
     rad = math.radians(heading)
     lat += math.cos(rad) * STEP
@@ -35,10 +39,16 @@ def generate_telemetry():
 
 
 def main():
-    print("🛸 드론 시뮬레이터 시작")
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.connect(MQTT_BROKER, MQTT_PORT, 60)
+    client.loop_start()
+    print(f"🛸 드론 시뮬레이터 시작 → mqtt://{MQTT_BROKER}:{MQTT_PORT}/{MQTT_TOPIC}")
     try:
         while True:
-            print(json.dumps(generate_telemetry()))
+            data = generate_telemetry()
+            payload = json.dumps(data)
+            client.publish(MQTT_TOPIC, payload)
+            print(payload)
             time.sleep(1)
     except KeyboardInterrupt:
         print("\n⏹  종료")
