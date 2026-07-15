@@ -44,7 +44,7 @@ public class GatewayController {
             return res;
         }
 
-        for (GatewayTelemetryRequest.DroneTelemetry drone : request.getDrones()) {
+        for (DroneTelemetry drone : request.getDrones()) {
             // Frontend SSE 스키마로 변환: server_ts + drong_ts 추가
             Map<String, Object> ssePayload = new HashMap<>();
             ssePayload.put("drone_id", drone.getDrone_id());
