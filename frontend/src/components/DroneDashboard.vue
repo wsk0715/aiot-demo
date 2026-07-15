@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 
 interface Telemetry {
   drone_id: string
-  timestamp: string
+  server_ts: string
+  drone_ts: string
   latitude: number
   longitude: number
   altitude: number
@@ -12,23 +13,46 @@ interface Telemetry {
   heading: number
 }
 
+// SSE에서 수신한 전체 드론 데이터 (drone_id → 최신 텔레메트리)
+const drones = ref<Map<string, Telemetry>>(new Map())
+// 전체 로그
 const logs = ref<string[]>([])
 const connected = ref(false)
 let eventSource: EventSource | null = null
 
+// 연결된 드론 목록
+const droneList = computed(() => {
+  return Array.from(drones.value.values())
+})
+
+// 드론별 상태 컬러
+const statusColor = (battery: number) => {
+  if (battery > 60) return 'text-green-400'
+  if (battery > 30) return 'text-yellow-400'
+  return 'text-red-400'
+}
+
 onMounted(() => {
   eventSource = new EventSource('/api/telemetry/stream')
   eventSource.onopen = () => { connected.value = true }
-  eventSource.addEventListener('telemetry', (e) => {
+
+  eventSource.addEventListener('telemetry', (e: MessageEvent) => {
     try {
       const data: Telemetry = JSON.parse(e.data)
-      const row = `${data.timestamp} [${data.drone_id}] `
+
+      // 드론 데이터 업데이트
+      drones.value.set(data.drone_id, data)
+
+      // 로그 (테이블 형식)
+      const row = `${data.server_ts} [${data.drone_id}] `
         + `lat=${data.latitude.toFixed(4)} lng=${data.longitude.toFixed(4)} `
         + `alt=${data.altitude.toFixed(1)}m `
         + `spd=${data.speed.toFixed(1)}m/s `
         + `batt=${data.battery.toFixed(0)}% `
         + `hdg=${data.heading}°`
       logs.value.push(row)
+      if (logs.value.length > 100) logs.value.shift()
+
       nextTick(() => {
         const el = document.getElementById('log-container')
         if (el) el.scrollTop = el.scrollHeight
@@ -55,6 +79,28 @@ onUnmounted(() => {
       </span>
     </header>
 
+    <!-- 드론 상태 요약 -->
+    <section class="px-6 py-3 border-b border-gray-700">
+      <div class="flex gap-4">
+        <div
+          v-for="drone in droneList"
+          :key="drone.drone_id"
+          class="px-4 py-2 rounded-lg bg-gray-800 text-sm"
+        >
+          <span class="font-semibold">{{ drone.drone_id }}</span>
+          <span :class="statusColor(drone.battery)" class="ml-2">
+            {{ drone.battery.toFixed(0) }}%
+          </span>
+          <span class="text-gray-400 ml-2">
+            {{ drone.altitude.toFixed(0) }}m / {{ drone.speed.toFixed(1) }}m/s
+          </span>
+        </div>
+        <div v-if="droneList.length === 0" class="text-gray-500 text-sm italic">
+          드론 데이터 수신 대기 중...
+        </div>
+      </div>
+    </section>
+
     <main class="flex-1 p-6 overflow-hidden">
       <div class="h-full flex flex-col">
         <h2 class="text-sm font-semibold text-gray-400 mb-2">텔레메트리 로그</h2>
@@ -69,7 +115,7 @@ onUnmounted(() => {
             {{ line }}
           </div>
         </div>
-        <p class="text-xs text-gray-500 mt-2">{{ logs.length }}건 수신</p>
+        <p class="text-xs text-gray-500 mt-2">{{ logs.length }}건 수신 (드론 {{ droneList.length }}대)</p>
       </div>
     </main>
   </div>
