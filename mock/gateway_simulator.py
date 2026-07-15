@@ -11,6 +11,7 @@ Pipeline:
 """
 
 import json
+import os
 import threading
 import time
 from collections import OrderedDict
@@ -19,12 +20,12 @@ from datetime import datetime, timezone
 import requests
 from paho.mqtt import client as mqtt
 
-MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
-SERVER_URL = "http://localhost:18080/api/gateway/telemetry"
+SERVER_URL = os.getenv("SERVER_URL", "http://localhost:18080/api/gateway/telemetry")
 
-GATEWAY_ID = "ORIN-001"
+GATEWAY_ID = os.getenv("GATEWAY_ID", "ORIN-001")
 
 # 드론 ID별 최신 텔레메트리 버퍼 (OrderedDict으로 마지막 수신 시간 추적)
 buffer: OrderedDict = OrderedDict()

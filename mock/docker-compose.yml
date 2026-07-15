@@ -1,0 +1,41 @@
+services:
+  # ── MQTT Broker (Eclipse Mosquitto) ──
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: aiot-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"   # MQTT
+      - "9001:9001"   # WebSocket
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  # ── Drone Simulator (4대 MQTT 발행) ──
+  drone-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.drone
+    container_name: aiot-drone-simulator
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    environment:
+      MQTT_BROKER: mosquitto
+      MQTT_PORT: 1883
+
+  # ── Gateway Simulator (MQTT → HTTP REST 중계) ──
+  gateway-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: aiot-gateway-simulator
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    environment:
+      MQTT_BROKER: mosquitto
+      MQTT_PORT: 1883
+      GATEWAY_ID: ORIN-001
+      SERVER_URL: http://host.docker.internal:18080/api/gateway/telemetry
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

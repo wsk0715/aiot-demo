@@ -13,6 +13,7 @@ Topic:
 
 import json
 import math
+import os
 import random
 import threading
 import time
@@ -20,8 +21,8 @@ from datetime import datetime, timezone
 
 from paho.mqtt import client as mqtt
 
-MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
 # 각 드론의 초기 위치 (서울 일대, 서로 다른 지점)
 DRONE_INIT = [
