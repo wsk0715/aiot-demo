@@ -14,7 +14,7 @@ services:
   drone-simulator:
     build:
       context: .
-      dockerfile: Dockerfile.drone
+      dockerfile: drone/Dockerfile
     container_name: aiot-drone-simulator
     restart: unless-stopped
     depends_on:
@@ -22,12 +22,13 @@ services:
     environment:
       MQTT_BROKER: mosquitto
       MQTT_PORT: 1883
+      PYTHONUNBUFFERED: 1
 
   # ── Gateway Simulator (MQTT → HTTP REST 중계) ──
   gateway-simulator:
     build:
       context: .
-      dockerfile: Dockerfile.gateway
+      dockerfile: gateway/Dockerfile
     container_name: aiot-gateway-simulator
     restart: unless-stopped
     depends_on:
@@ -35,6 +36,7 @@ services:
     environment:
       MQTT_BROKER: mosquitto
       MQTT_PORT: 1883
+      PYTHONUNBUFFERED: 1
       GATEWAY_ID: ORIN-001
       SERVER_URL: http://host.docker.internal:18080/api/gateway/telemetry
     extra_hosts:

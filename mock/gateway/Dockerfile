@@ -5,6 +5,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY gateway_simulator.py .
+COPY gateway/simulator.py simulator.py
 
-CMD ["python", "gateway_simulator.py"]
+CMD ["python", "-u", "simulator.py"]

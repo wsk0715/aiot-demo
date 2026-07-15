@@ -5,6 +5,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY drone_simulator.py .
+COPY drone/simulator.py simulator.py
 
-CMD ["python", "drone_simulator.py"]
+CMD ["python", "-u", "simulator.py"]
