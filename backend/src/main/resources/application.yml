@@ -16,3 +16,5 @@ mqtt:
   broker: tcp://mosquitto:1883
   client-id: demo-subscriber
   topic: drone/telemetry
+  subscriber:
+    enabled: false
